@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Створити Акцію | Tasty Way</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-stone-100 text-stone-800 font-sans antialiased pb-24 md:pb-0">
+
+<div class="flex min-h-screen">
+
+    <div th:replace="~{manager/sidebar :: desktop-sidebar('promotions')}"></div>
+
+    <main class="flex-1 md:ml-64 p-4 md:p-8 w-full flex justify-center items-start">
+
+        <div class="max-w-xl w-full bg-white border border-stone-200 rounded-2xl shadow-sm overflow-hidden">
+
+            <div class="p-5 border-b border-stone-100 bg-stone-50/50 flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-black text-stone-900 tracking-tight">Конструктор акції</h2>
+                    <p class="text-xs text-stone-500 mt-0.5">Налаштуйте параметри гнучкої знижки</p>
+                </div>
+                <a th:href="@{/manager/promotions(restaurantId=${restaurantId})}" class="text-xs font-bold text-stone-400 hover:text-stone-600 transition-colors">
+                    Скасувати ✕
+                </a>
+            </div>
+
+            <form th:action="@{/manager/promotions/save}" th:object="${promotion}" method="POST" class="p-6 space-y-5">
+
+                <input type="hidden" name="restaurantId" th:value="${restaurantId}">
+
+                <div>
+                    <label class="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1.5">Назва маркетингової компанії *</label>
+                    <input type="text" th:field="*{name}" required placeholder="Наприклад: Щасливі години на десерти"
+                           class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/10 text-sm transition-all bg-stone-50/30">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1.5">Тип знижки *</label>
+                        <select th:field="*{type}" required
+                                class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/10 text-sm transition-all bg-stone-50/30 font-medium cursor-pointer">
+                            <option value="PERCENTAGE">Відсоток (%)</option>
+                            <option value="FLAT">Фіксована сума (₴)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1.5">Розмір знижки *</label>
+                        <input type="number" step="0.01" min="0" th:field="*{discountValue}" required placeholder="Наприклад: 15 або 50"
+                               class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/10 text-sm transition-all bg-stone-50/30 font-bold">
+                    </div>
+                </div>
+
+                <div class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-4">
+                    <span class="block text-xs font-black text-stone-600 uppercase tracking-wider">🎯 Цільова авдиторія акції:</span>
+                    <p class="text-[11px] text-stone-400 mt-0.5">Оберіть щось одне. Якщо нічого не обрано — акція діятиме на весь кошик.</p>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-stone-500 uppercase tracking-wider mb-1">На конкретну страву:</label>
+                        <select name="targetDishId" class="w-full px-3 py-2.5 rounded-lg border border-stone-200 bg-white text-xs focus:outline-none focus:border-amber-600">
+                            <option value="">-- Не застосовувати до страви --</option>
+                            <option th:each="dish : ${dishes}" th:value="${dish.id}" th:text="${dish.name} + ' (' + ${dish.price} + ' ₴)'">Страва</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-stone-500 uppercase tracking-wider mb-1">Або на цілу категорію меню:</label>
+                        <select name="targetCategoryId" class="w-full px-3 py-2.5 rounded-lg border border-stone-200 bg-white text-xs focus:outline-none focus:border-amber-600">
+                            <option value="">-- Не застосовувати до категорії --</option>
+                            <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}">Категорія</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-stone-500 uppercase tracking-wider mb-1">Або мінімальна сума замовлення (₴):</label>
+                        <input type="number" step="1" th:field="*{minOrderSum}" placeholder="Акція спрацює, якщо чек від цієї суми"
+                               class="w-full px-3 py-2.5 rounded-lg border border-stone-200 bg-white text-xs focus:outline-none focus:border-amber-600">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1.5">Дата та час старту *</label>
+                        <input type="datetime-local" th:field="*{startDate}" required
+                               class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/10 text-sm transition-all bg-stone-50/30 font-medium">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1.5">Дата та час кінця *</label>
+                        <input type="datetime-local" th:field="*{endDate}" required
+                               class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/10 text-sm transition-all bg-stone-50/30 font-medium">
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3.5 rounded-xl transition-all cursor-pointer shadow-lg shadow-amber-600/10 text-center uppercase tracking-wider text-xs">
+                        Запустити акційну компанію
+                    </button>
+                </div>
+
+            </form>
+        </div>
+
+    </main>
+</div>
+
+<div th:replace="~{manager/sidebar :: mobile-navbar('promotions')}"></div>
+
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Маркетинг та Акції | Tasty Way</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-stone-100 text-stone-800 font-sans antialiased pb-24 md:pb-0">
+
+<div class="flex min-h-screen">
+
+    <div th:replace="~{manager/sidebar :: desktop-sidebar('promotions')}"></div>
+
+    <main class="flex-1 md:ml-64 p-4 md:p-8 w-full">
+
+        <header class="flex items-center justify-between mb-6 pb-4 border-b border-stone-200">
+            <div>
+                <h1 class="text-xl md:text-2xl font-black text-stone-900 tracking-tight">Маркетингові акції</h1>
+                <p class="text-xs md:text-sm text-stone-500 mt-0.5">Керуйте гнучкими знижками та спеціальними пропозиціями закладу</p>
+            </div>
+            <a th:href="@{/manager/promotions/add(restaurantId=${restaurantId})}"
+               class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition-all shadow-md shadow-amber-600/10 flex items-center gap-1.5 uppercase tracking-wider">
+                ＋ Створити акцію
+            </a>
+        </header>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+
+            <div th:if="${#lists.isEmpty(promotions)}" class="col-span-full bg-white border border-stone-200 rounded-2xl p-12 text-center shadow-sm">
+                <span class="text-5xl block mb-3">📢</span>
+                <h3 class="text-lg font-bold text-stone-700">Жодної акції не знайдено</h3>
+                <p class="text-sm text-stone-400 mt-1">Запустіть першу знижку, щоб залучити більше гостей через QR-меню!</p>
+            </div>
+
+            <div th:each="promo : ${promotions}" class="bg-white border border-stone-200 rounded-2xl shadow-sm flex flex-col justify-between overflow-hidden transition-all hover:shadow-md">
+
+                <div class="p-5 border-b border-stone-100 bg-stone-50/50 flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Назва акції</span>
+                        <span class="text-sm font-black text-stone-900" th:text="${promo.name}">Назва</span>
+                    </div>
+                    <div class="text-right">
+                            <span class="text-xs font-black text-amber-800 px-2.5 py-1.5 bg-amber-100 rounded-lg block"
+                                  th:text="${promo.type.name() == 'PERCENTAGE'} ? '-' + ${promo.discountValue} + '%' : '-' + ${promo.discountValue} + ' ₴'">
+                                -15%
+                            </span>
+                    </div>
+                </div>
+
+                <div class="p-5 flex-1 space-y-3">
+                    <div>
+                        <span class="text-[10px] text-stone-400 font-bold uppercase tracking-wider block mb-1">Застосовується на:</span>
+
+                        <span th:if="${promo.targetDish != null}" class="text-xs font-bold text-stone-700 bg-stone-100 px-2.5 py-1 rounded-md inline-block">
+                                🍔 Конкретну страву: <span class="font-black text-stone-900" th:text="${promo.targetDish.name}">Страва</span>
+                            </span>
+
+                        <span th:if="${promo.targetCategory != null}" class="text-xs font-bold text-stone-700 bg-stone-100 px-2.5 py-1 rounded-md inline-block">
+                                📂 Цілу категорію: <span class="font-black text-stone-900" th:text="${promo.targetCategory.name}">Категорія</span>
+                            </span>
+
+                        <span th:if="${promo.targetDish == null && promo.targetCategory == null}" class="text-xs font-bold text-stone-700 bg-stone-100 px-2.5 py-1 rounded-md inline-block">
+                                💰 Весь кошик замовлення
+                            </span>
+                    </div>
+
+                    <div class="pt-3 border-t border-stone-100 text-xs text-stone-500 space-y-1">
+                        <div class="flex justify-between">
+                            <span>Старт:</span>
+                            <span class="font-semibold text-stone-700" th:text="${#temporals.format(promo.startDate, 'dd.MM.yyyy HH:mm')}">01.01.2026 00:00</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Кінець:</span>
+                            <span class="font-semibold text-stone-700" th:text="${#temporals.format(promo.endDate, 'dd.MM.yyyy HH:mm')}">31.12.2026 23:59</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 border-t border-stone-100 bg-stone-50/30 flex justify-end">
+                    <form th:action="@{/manager/promotions/{id}/delete(id=${promo.id})}" method="POST" onsubmit="return confirm('Ви впевнені, що хочете видалити цю акцію?')">
+                        <input type="hidden" name="restaurantId" th:value="${restaurantId}">
+                        <button type="submit" class="text-xs font-bold text-red-500 hover:text-red-700 border border-red-200 hover:border-red-300 px-3 py-1.5 rounded-xl transition-all bg-white cursor-pointer shadow-sm">
+                            🗑️ Видалити акцію
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<div th:replace="~{manager/sidebar :: mobile-navbar('promotions')}"></div>
+
+</body>
+</html>

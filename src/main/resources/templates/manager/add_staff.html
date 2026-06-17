@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Додати співробітника | Tasty Way</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-stone-100 text-stone-800 font-sans antialiased pb-24 md:pb-0">
+
+<div class="flex min-h-screen">
+
+    <div th:replace="~{manager/sidebar :: desktop-sidebar('staff')}"></div>
+
+    <main class="flex-1 md:ml-64 p-4 md:p-8 w-full flex justify-center items-start">
+
+        <div class="max-w-xl w-full bg-white border border-stone-200 rounded-2xl shadow-sm overflow-hidden mt-4 md:mt-0">
+
+            <div class="p-5 border-b border-stone-100 bg-stone-50/50 flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-black text-stone-900 tracking-tight">Картка співробітника</h2>
+                    <p class="text-xs text-stone-500 mt-0.5">Реєстрація нового аккаунта для персоналу</p>
+                </div>
+                <a th:href="@{/manager/orders(restaurantId=${restaurantId})}" class="text-xs font-bold text-stone-400 hover:text-stone-600 transition-colors">
+                    Скасувати ✕
+                </a>
+            </div>
+
+            <form th:action="@{/manager/staff/add}" th:object="${newStaff}" method="post" class="p-6 space-y-5">
+
+                <input type="hidden" name="restaurantId" th:value="${restaurantId}">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="firstName" class="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1.5">Ім'я *</label>
+                        <input type="text" th:field="*{firstName}" id="firstName" required placeholder="Напр: Олег"
+                               class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/10 text-sm transition-all bg-stone-50/30">
+                    </div>
+                    <div>
+                        <label for="lastName" class="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1.5">Прізвище *</label>
+                        <input type="text" th:field="*{lastName}" id="lastName" required placeholder="Напр: Петренко"
+                               class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/10 text-sm transition-all bg-stone-50/30">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="role" class="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1.5">Посада в закладі *</label>
+                    <select th:field="*{role}" id="role" required
+                            class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/10 text-sm transition-all bg-stone-50/30 font-medium cursor-pointer">
+                        <option th:value="${T(ua.com.kisit.entity.User.Role).ROLE_WAITER}">🍽️ Офіціант закладу</option>
+                        <option th:value="${T(ua.com.kisit.entity.User.Role).ROLE_MANAGER}">🔑 Менеджер / Керуючий</option>
+                    </select>
+                    <p class="text-[11px] text-stone-400 mt-1.5 leading-relaxed">
+                        Роль визначає рівень доступу до цієї панелі. Офіціанти бачать лише замовлення та не мають доступу до редагування меню, акцій чи аналітики.
+                    </p>
+                </div>
+
+                <div class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-4">
+                    <span class="block text-xs font-black text-stone-600 uppercase tracking-wider">🔒 Дані для авторизації:</span>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="username" class="block text-[11px] font-bold text-stone-500 uppercase tracking-wider mb-1.5">Логін (Username) *</label>
+                            <input type="text" th:field="*{username}" id="username" required placeholder="waiter_loft"
+                                   class="w-full px-3 py-2.5 rounded-lg border border-stone-200 bg-white text-xs focus:outline-none focus:border-amber-600">
+                        </div>
+                        <div>
+                            <label for="password" class="block text-[11px] font-bold text-stone-500 uppercase tracking-wider mb-1.5">Пароль *</label>
+                            <input type="password" th:field="*{password}" id="password" required placeholder="••••••••"
+                                   class="w-full px-3 py-2.5 rounded-lg border border-stone-200 bg-white text-xs focus:outline-none focus:border-amber-600">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit"
+                            class="w-full bg-stone-900 hover:bg-amber-600 text-white font-bold py-3.5 rounded-xl transition-all cursor-pointer shadow-md text-center uppercase tracking-wider text-xs">
+                        Зберегти та активувати акаунт
+                    </button>
+                </div>
+
+            </form>
+        </div>
+
+    </main>
+</div>
+
+<div th:replace="~{manager/sidebar :: mobile-navbar('staff')}"></div>
+
+</body>
+</html>

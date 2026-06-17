@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<aside th:fragment="desktop-sidebar(activePage)" class="hidden md:flex w-64 bg-stone-900 text-stone-200 flex-col fixed h-full z-50">
+  <div class="p-6 border-b border-stone-800">
+    <span class="text-lg font-black tracking-wider text-white uppercase block">Tasty Way SaaS</span>
+    <span class="text-xs text-amber-500 font-medium tracking-wide">Панель Управління</span>
+  </div>
+  <nav class="flex-1 p-4 space-y-1">
+
+    <a th:href="@{/manager/orders(restaurantId=${restaurantId})}"
+       th:class="${activePage == 'orders'}
+                         ? 'flex items-center gap-3 px-4 py-3 bg-amber-600 text-white font-bold rounded-xl shadow-md shadow-amber-600/10 transition-all'
+                         : 'flex items-center gap-3 px-4 py-3 text-stone-400 hover:bg-stone-800 hover:text-stone-200 font-medium rounded-xl transition-all'">
+      <span>📋</span> Активні замовлення
+    </a>
+
+    <a th:if="${userRole == 'ROLE_ADMIN' or userRole == 'ROLE_MANAGER'}"
+       th:href="@{/manager/menu(restaurantId=${restaurantId})}"
+       th:class="${activePage == 'menu'}
+                         ? 'flex items-center gap-3 px-4 py-3 bg-amber-600 text-white font-bold rounded-xl shadow-md shadow-amber-600/10 transition-all'
+                         : 'flex items-center gap-3 px-4 py-3 text-stone-400 hover:bg-stone-800 hover:text-stone-200 font-medium rounded-xl transition-all'">
+      <span>🍔</span> Керування меню
+    </a>
+
+    <a th:if="${userRole == 'ROLE_ADMIN' or userRole == 'ROLE_MANAGER'}"
+       th:href="@{/manager/promotions(restaurantId=${restaurantId})}"
+       th:class="${activePage == 'promotions'}
+                         ? 'flex items-center gap-3 px-4 py-3 bg-amber-600 text-white font-bold rounded-xl shadow-md shadow-amber-600/10 transition-all'
+                         : 'flex items-center gap-3 px-4 py-3 text-stone-400 hover:bg-stone-800 hover:text-stone-200 font-medium rounded-xl transition-all'">
+      <span>🔥</span> Маркетинг та акції
+    </a>
+
+    <a th:if="${userRole == 'ROLE_ADMIN' or userRole == 'ROLE_MANAGER'}"
+       th:href="@{/manager/staff/add}"
+       th:class="${activePage == 'staff'}
+                         ? 'flex items-center gap-3 px-4 py-3 bg-amber-600 text-white font-bold rounded-xl shadow-md shadow-amber-600/10 transition-all'
+                         : 'flex items-center gap-3 px-4 py-3 text-stone-400 hover:bg-stone-800 hover:text-stone-200 font-medium rounded-xl transition-all'">
+      <span>👥</span> Налаштування команди
+    </a>
+
+    <a th:if="${userRole == 'ROLE_ADMIN'}"
+       th:href="@{/manager/analytics(restaurantId=${restaurantId})}"
+       th:class="${activePage == 'analytics'}
+                         ? 'flex items-center gap-3 px-4 py-3 bg-amber-600 text-white font-bold rounded-xl shadow-md shadow-amber-600/10 transition-all'
+                         : 'flex items-center gap-3 px-4 py-3 text-stone-400 hover:bg-stone-800 hover:text-stone-200 font-medium rounded-xl transition-all'">
+      <span>📊</span> Аналітика закладу
+    </a>
+
+  </nav>
+  <div class="p-4 border-t border-stone-800 text-xs text-stone-500 text-center font-medium">v1.0.0 © 2026</div>
+</aside>
+
+
+<nav th:fragment="mobile-navbar(activePage)" class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 p-3 flex justify-around items-center z-50 shadow-xl">
+
+  <a th:href="@{/manager/orders(restaurantId=${restaurantId})}"
+     th:class="${activePage == 'orders'} ? 'flex flex-col items-center text-amber-600 font-bold text-[11px] gap-1' : 'flex flex-col items-center text-stone-400 font-medium text-[11px] gap-1'">
+    <span class="text-xl">📋</span>Замовлення
+  </a>
+
+  <a th:if="${userRole == 'ROLE_ADMIN' or userRole == 'ROLE_MANAGER'}"
+     th:href="@{/manager/menu(restaurantId=${restaurantId})}"
+     th:class="${activePage == 'menu'} ? 'flex flex-col items-center text-amber-600 font-bold text-[11px] gap-1' : 'flex flex-col items-center text-stone-400 font-medium text-[11px] gap-1'">
+    <span class="text-xl">🍔</span>Меню
+  </a>
+
+  <a th:if="${userRole == 'ROLE_ADMIN' or userRole == 'ROLE_MANAGER'}"
+     th:href="@{/manager/promotions(restaurantId=${restaurantId})}"
+     th:class="${activePage == 'promotions'} ? 'flex flex-col items-center text-amber-600 font-bold text-[11px] gap-1' : 'flex flex-col items-center text-stone-400 font-medium text-[11px] gap-1'">
+    <span class="text-xl">🔥</span>Акції
+  </a>
+
+  <a th:if="${userRole == 'ROLE_ADMIN' or userRole == 'ROLE_MANAGER'}"
+     th:href="@{/manager/staff/add}"
+     th:class="${activePage == 'staff'} ? 'flex flex-col items-center text-amber-600 font-bold text-[11px] gap-1' : 'flex flex-col items-center text-stone-400 font-medium text-[11px] gap-1'">
+    <span class="text-xl">👥</span>Команда
+  </a>
+
+  <a th:if="${userRole == 'ROLE_ADMIN'}"
+     th:href="@{/manager/analytics(restaurantId=${restaurantId})}"
+     th:class="${activePage == 'analytics'} ? 'flex flex-col items-center text-amber-600 font-bold text-[11px] gap-1' : 'flex flex-col items-center text-stone-400 font-medium text-[11px] gap-1'">
+    <span class="text-xl">📊</span>Аналітика
+  </a>
+
+</nav>
+
+</body>
+</html>

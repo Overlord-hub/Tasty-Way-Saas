@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Аналітика Бізнесу | Tasty Way</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-stone-100 text-stone-800 font-sans antialiased pb-24 md:pb-0">
+
+<div class="flex min-h-screen">
+
+  <div th:replace="~{manager/sidebar :: desktop-sidebar('analytics')}"></div>
+
+  <main class="flex-1 md:ml-64 p-4 md:p-8 w-full">
+
+    <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-4 border-b border-stone-200">
+      <div>
+        <h1 class="text-xl md:text-2xl font-black text-stone-900 tracking-tight">Кабінет Власника</h1>
+        <p class="text-xs md:text-sm text-stone-500 mt-0.5">Фінансові показники та звітність ресторану в реальному часі</p>
+      </div>
+      <a th:href="@{/manager/analytics/pdf(restaurantId=${restaurantId})}"
+         class="bg-stone-900 hover:bg-stone-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-2 uppercase tracking-wider whitespace-nowrap cursor-pointer">
+        📄 Завантажити PDF Звіт
+      </a>
+    </header>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-6">
+      <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+        <div class="w-12 h-12 bg-emerald-50 border border-emerald-200 text-emerald-600 rounded-xl flex items-center justify-center text-xl shadow-inner">💰</div>
+        <div>
+          <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Загальна виручка</span>
+          <span class="text-xl font-black text-stone-900 tracking-tight" th:text="${revenue} + ' ₴'">0.00 ₴</span>
+        </div>
+      </div>
+
+      <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm flex items-center gap-4">
+        <div class="w-12 h-12 bg-blue-50 border border-blue-200 text-blue-600 rounded-xl flex items-center justify-center text-xl shadow-inner">✅</div>
+        <div>
+          <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Оплачені чеки</span>
+          <span class="text-xl font-black text-stone-900 tracking-tight" th:text="${closedOrders} + ' замовлень'">0</span>
+        </div>
+      </div>
+
+      <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm flex items-center gap-4 sm:col-span-2 lg:col-span-1">
+        <div class="w-12 h-12 bg-amber-50 border border-amber-200 text-amber-600 rounded-xl flex items-center justify-center text-xl shadow-inner">🍳</div>
+        <div>
+          <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Зараз у роботі</span>
+          <span class="text-xl font-black text-stone-900 tracking-tight" th:text="${activeOrders} + ' столів'">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+      <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm lg:col-span-2 flex flex-col justify-between">
+        <div class="mb-4">
+          <h3 class="text-xs font-black text-stone-400 uppercase tracking-wider">Моніторинг доходів</h3>
+          <p class="text-[11px] text-stone-400">Динаміка закриття останніх чеків ресторану</p>
+        </div>
+        <div class="relative w-full h-64">
+          <canvas id="revenueLineChart"></canvas>
+        </div>
+      </div>
+
+      <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between">
+        <div class="mb-4">
+          <h3 class="text-xs font-black text-stone-400 uppercase tracking-wider">Структура транзакцій</h3>
+          <p class="text-[11px] text-stone-400">Співвідношення готівкових та безготівкових оплат</p>
+        </div>
+        <div class="relative w-full h-56 flex items-center justify-center">
+          <canvas id="paymentPieChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="bg-white border border-stone-200 rounded-2xl shadow-sm overflow-hidden">
+      <div class="p-5 border-b border-stone-100 bg-stone-50/40">
+        <h3 class="text-sm font-black text-stone-900 uppercase tracking-wider">Касовий журнал замовлень</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+          <tr class="border-b border-stone-100 text-xs font-bold uppercase tracking-wider text-stone-400 bg-stone-50/20">
+            <th class="p-4 pl-6">ID чеку</th>
+            <th class="p-4">Стіл</th>
+            <th class="p-4">Метод оплати</th>
+            <th class="p-4 text-center">Статус</th>
+            <th class="p-4 pr-6 text-right">Сума</th>
+          </tr>
+          </thead>
+          <tbody class="divide-y divide-stone-100 text-sm">
+          <tr th:each="order : ${orders}" class="hover:bg-stone-50/50 transition-colors">
+            <td class="p-4 pl-6 font-bold text-stone-900" th:text="'#' + ${order.id}">#1</td>
+            <td class="p-4 font-medium text-stone-600" th:text="'Стіл № ' + ${order.tableNumber}">Стіл № 1</td>
+            <td class="p-4 text-xs font-semibold text-stone-500" th:text="${order.paymentMethod.name() == 'CASH' ? '💵 Готівка' : '💳 Термінал'}">Метод</td>
+            <td class="p-4 text-center">
+              <span th:if="${order.status.name() == 'CLOSED'}" class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-bold">Оплачено</span>
+              <span th:if="${order.status.name() != 'CLOSED'}" class="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-xs font-bold">У процесі</span>
+            </td>
+            <td class="p-4 pr-6 text-right font-black text-stone-900" th:text="${order.totalPrice} + ' ₴'">0.00 ₴</td>
+          </tr>
+          <tr th:if="${#lists.isEmpty(orders)}">
+            <td colspan="5" class="p-8 text-center text-stone-400 text-sm font-medium">Жодних транзакцій ще не зафіксовано</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div th:replace="~{manager/sidebar :: mobile-navbar('analytics')}"></div>
+
+<script th:inline="javascript">
+  // Отримуємо чисті масиви та числа з Spring Boot
+  const cashTransactions = [[${cashCount}]];
+  const cardTransactions = [[${cardCount}]];
+
+  let lineLabels = [[${orderLabels}]];
+  let lineValues = [[${orderSums}]];
+
+  // Захист: якщо масиви порожні, ставимо красиву дефолтну точку
+  if (!lineLabels || lineLabels.length === 0) {
+    lineLabels = ['Початок роботи'];
+    lineValues = [0];
+  }
+
+  // 1. ЛІНІЙНИЙ ГРАФІК (Моніторинг доходів)
+  const ctxLine = document.getElementById('revenueLineChart');
+  if (ctxLine) {
+    new Chart(ctxLine.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: lineLabels,
+        datasets: [{
+          label: 'Сума чеку (₴)',
+          data: lineValues,
+          borderColor: '#d97706',
+          backgroundColor: 'rgba(217, 119, 6, 0.05)',
+          borderWidth: 3,
+          tension: 0.3,
+          fill: true,
+          pointBackgroundColor: '#1c1917',
+          pointRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.03)' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  // 2. КРУГОВА ДІАГРАМА (Структура транзакцій)
+  const ctxPie = document.getElementById('paymentPieChart');
+  if (ctxPie) {
+    const hasData = (cashTransactions + cardTransactions) > 0;
+
+    new Chart(ctxPie.getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: hasData ? ['Готівка', 'Термінал'] : ['Немає замовлень'],
+        datasets: [{
+          data: hasData ? [cashTransactions, cardTransactions] : [1, 0],
+          backgroundColor: hasData ? ['#10b981', '#3b82f6'] : ['#e7e5e4'],
+          borderWidth: 2,
+          borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11, weight: 'bold' } } }
+        }
+      }
+    });
+  }
+</script>
+</body>
+</html>

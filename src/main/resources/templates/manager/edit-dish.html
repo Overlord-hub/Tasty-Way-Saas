@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редагувати Страву | Tasty Way</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-stone-100 text-stone-800 font-sans antialiased pb-24 md:pb-0">
+
+<div class="flex min-h-screen">
+
+    <aside class="hidden md:flex w-64 bg-stone-900 text-stone-200 flex-col fixed h-full z-50">
+        <div class="p-6 border-b border-stone-800">
+            <span class="text-lg font-black tracking-wider text-white uppercase block">Tasty Way SaaS</span>
+            <span class="text-xs text-amber-500 font-medium tracking-wide">Панель Управління</span>
+        </div>
+        <nav class="flex-1 p-4 space-y-1">
+            <a th:href="@{/manager/orders(restaurantId=${restaurantId})}" class="flex items-center gap-3 px-4 py-3 text-stone-400 hover:bg-stone-800 hover:text-stone-200 font-medium rounded-xl transition-all">
+                <span>📋</span> Активні замовлення
+            </a>
+            <a th:href="@{/manager/menu(restaurantId=${restaurantId})}" class="flex items-center gap-3 px-4 py-3 bg-amber-600 text-white font-bold rounded-xl shadow-md shadow-amber-600/10 transition-all">
+                <span>🍔</span> Керування меню
+            </a>
+            <a th:href="@{/manager/promotions(restaurantId=${restaurantId})}" class="flex items-center gap-3 px-4 py-3 text-stone-400 hover:bg-stone-800 hover:text-stone-200 font-medium rounded-xl transition-all">
+                <span>🔥</span> Маркетинг та акції
+            </a>
+        </nav>
+        <div class="p-4 border-t border-stone-800 text-xs text-stone-500 text-center font-medium">v1.0.0 © 2026</div>
+    </aside>
+
+    <main class="flex-1 md:ml-64 p-4 md:p-8 w-full flex justify-center items-start">
+
+        <div class="max-w-xl w-full bg-white border border-stone-200 rounded-2xl shadow-sm overflow-hidden">
+
+            <div class="p-5 border-b border-stone-100 bg-stone-50/50 flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-black text-stone-900 tracking-tight">Редагування позиції</h2>
+                    <p class="text-xs text-stone-500 mt-0.5" th:text="'Редагування: ' + ${dish.name}">Назва страви</p>
+                </div>
+                <a th:href="@{/manager/menu(restaurantId=${restaurantId})}" class="text-xs font-bold text-stone-400 hover:text-stone-600 transition-colors">
+                    Скасувати ✕
+                </a>
+            </div>
+
+            <form th:action="@{/manager/dish/{id}/update(id=${dish.id})}" th:object="${dish}" method="POST" enctype="multipart/form-data" class="p-6 space-y-5">
+
+                <input type="hidden" name="restaurantId" th:value="${restaurantId}">
+                <input type="hidden" th:field="*{id}">
+
+                <div>
+                    <label class="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1.5">Назва страви *</label>
+                    <input type="text" th:field="*{name}" required
+                           class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/10 text-sm transition-all bg-stone-50/30 font-bold">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1.5">Опис / Склад страви</label>
+                    <textarea th:field="*{description}" rows="3"
+                              class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/10 text-sm transition-all bg-stone-50/30 resize-none"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1.5">Ціна (в ₴) *</label>
+                        <input type="number" step="0.01" min="0" th:field="*{price}" required
+                               class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/10 text-sm transition-all bg-stone-50/30 font-black">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1.5">Категорія меню *</label>
+                        <select name="categoryId" required
+                                class="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:border-amber-600 focus:ring-2 focus:ring-amber-600/10 text-sm transition-all bg-stone-50/30 font-medium cursor-pointer">
+                            <option th:each="cat : ${categories}"
+                                    th:value="${cat.id}"
+                                    th:text="${cat.name}"
+                                    th:selected="${dish.category != null && dish.category.id == cat.id}">
+                                Категорія
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4 p-4 bg-stone-50 rounded-2xl border border-stone-200">
+                    <div class="w-16 h-16 rounded-xl overflow-hidden border border-stone-200 bg-white flex-shrink-0">
+                        <img th:src="@{'/uploads/' + ${dish.imageDish}}"
+                             class="w-full h-full object-cover"
+                             alt="Поточне фото">
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black text-stone-400 uppercase tracking-wider">Поточне зображення</span>
+                        <p class="text-xs text-stone-600">Якщо не хочете міняти фото — залиште поле вибору порожнім.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1.5">Замінити фотографію</label>
+                    <div class="border-2 border-dashed border-stone-200 rounded-2xl p-4 text-center bg-stone-50/30 hover:bg-stone-50 transition-colors relative cursor-pointer group">
+                        <input type="file" name="imageFile" accept="image/*" id="file-upload-input" onchange="previewFileName()"
+                               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                        <div class="space-y-1">
+                            <span class="text-xl block group-hover:scale-110 transition-transform">🖼️</span>
+                            <p id="file-upload-text" class="text-xs font-medium text-stone-500">Обрати новий файл зображення</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-stone-900 hover:bg-amber-600 text-white font-bold py-3.5 rounded-xl transition-all cursor-pointer shadow-lg shadow-stone-900/10 text-center uppercase tracking-wider text-xs">
+                        Оновити дані страви
+                    </button>
+                </div>
+
+            </form>
+        </div>
+
+    </main>
+</div>
+
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 p-3 flex justify-around items-center z-50 shadow-xl">
+    <a th:href="@{/manager/orders(restaurantId=${restaurantId})}" class="flex flex-col items-center text-stone-400 font-medium text-[11px] gap-1">
+        <span class="text-xl">📋</span>Замовлення
+    </a>
+    <a th:href="@{/manager/menu(restaurantId=${restaurantId})}" class="flex flex-col items-center text-amber-600 font-bold text-[11px] gap-1">
+        <span class="text-xl">🍔</span>Меню кухні
+    </a>
+    <a th:href="@{/manager/promotions(restaurantId=${restaurantId})}" class="flex flex-col items-center text-stone-400 font-medium text-[11px] gap-1">
+        <span class="text-xl">🔥</span>Акції
+    </a>
+</nav>
+
+<script>
+    function previewFileName() {
+        const input = document.getElementById('file-upload-input');
+        const text = document.getElementById('file-upload-text');
+        if (input.files && input.files.length > 0) {
+            text.innerText = "Нове фото обрано: " + input.files[0].name;
+            text.className = "text-xs font-bold text-amber-600";
+        }
+    }
+</script>
+</body>
+</html>

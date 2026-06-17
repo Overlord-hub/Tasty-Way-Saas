@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Керування Меню | Tasty Way</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-stone-100 text-stone-800 font-sans antialiased pb-24 md:pb-0">
+
+<div class="flex min-h-screen">
+
+    <div th:replace="~{manager/sidebar :: desktop-sidebar('menu')}"></div>
+
+    <main class="flex-1 md:ml-64 p-4 md:p-8 w-full">
+
+        <header class="flex items-center justify-between mb-6 pb-4 border-b border-stone-200">
+            <div>
+                <h1 class="text-xl md:text-2xl font-black text-stone-900 tracking-tight">Керування Меню</h1>
+                <p class="text-xs md:text-sm text-stone-500 mt-0.5">Доступність страв на кухні</p>
+            </div>
+            <a th:href="@{/manager/dish/add(restaurantId=${restaurantId})}"
+               class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition-all shadow-md shadow-amber-600/10 flex items-center gap-1.5 uppercase tracking-wider">
+                ＋ Додати страву
+            </a>
+        </header>
+
+        <div th:if="${param.error != null && param.error[0] == 'category_has_dishes'}"
+             class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 text-xs font-bold rounded-xl flex items-center gap-2">
+            ⚠️ Не вдалося видалити категорію! Спочатку видаліть або перенесіть усі страви, які до неї прив'язані.
+        </div>
+
+        <div class="mb-6 bg-white border border-stone-200 rounded-2xl p-5 shadow-sm space-y-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+
+                <form th:action="@{/manager/category/save}" method="POST" class="space-y-2">
+                    <input type="hidden" name="restaurantId" th:value="${restaurantId}">
+                    <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-wider">Створити нову категорію меню</label>
+                    <div class="flex gap-2">
+                        <input type="text" name="categoryName" required placeholder="Наприклад: Десерти, Суші..."
+                               class="w-full px-4 py-2.5 rounded-xl border border-stone-200 focus:outline-none focus:border-amber-600 text-xs bg-stone-50/30">
+                        <button type="submit" class="bg-stone-900 hover:bg-stone-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition-colors cursor-pointer whitespace-nowrap">
+                            📂 Додати
+                        </button>
+                    </div>
+                </form>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-2">Наявні категорії (Редагування / Видалення)</label>
+                    <div class="flex flex-wrap gap-2">
+                        <div th:if="${#lists.isEmpty(categories)}" class="text-xs text-stone-400 py-2">Категорій ще немає</div>
+
+                        <div th:each="cat : ${categories}" class="flex items-center gap-1.5 bg-stone-100 hover:bg-stone-200/60 text-stone-700 text-xs font-bold px-3 py-1.5 rounded-xl transition-all border border-stone-200/40">
+                            <span th:text="${cat.name}">Категорія</span>
+
+                            <div class="flex items-center gap-1 border-l border-stone-300 pl-1.5 ml-0.5">
+                                <button type="button"
+                                        th:data-id="${cat.id}"
+                                        th:data-name="${cat.name}"
+                                        th:data-restaurant="${restaurantId}"
+                                        onclick="editCategoryName(this.getAttribute('data-id'), this.getAttribute('data-name'), this.getAttribute('data-restaurant'))"
+                                        title="Перейменувати"
+                                        class="text-stone-400 hover:text-amber-600 cursor-pointer text-[10px] transition-colors">
+                                    ✏️
+                                </button>
+
+                                <form th:action="@{/manager/category/{id}/delete(id=${cat.id})}" method="POST" class="inline" onsubmit="return confirm('Видалити цю категорію?')">
+                                    <input type="hidden" name="restaurantId" th:value="${restaurantId}">
+                                    <button type="submit" title="Видалити" class="text-stone-400 hover:text-red-500 cursor-pointer text-[10px] transition-colors">✕</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="hidden md:block bg-white border border-stone-200 rounded-2xl shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                    <tr class="border-b border-stone-100 text-xs font-bold uppercase tracking-wider text-stone-400 bg-stone-50/20">
+                        <th class="p-4 pl-6">Страва</th>
+                        <th class="p-4">Категорія</th>
+                        <th class="p-4">Ціна</th>
+                        <th class="p-4 text-center">Статус</th>
+                        <th class="p-4 pr-6 text-right">Дії</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-stone-100 text-sm">
+                    <tr th:each="dish : ${dishes}" class="hover:bg-stone-50/50 transition-colors">
+                        <td class="p-4 pl-6">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl overflow-hidden border border-stone-200 bg-stone-100 flex-shrink-0">
+                                    <img th:if="${dish.imageDish != null && !dish.imageDish.empty}"
+                                         th:src="@{'/uploads/' + ${dish.imageDish}}"
+                                         class="w-full h-full object-cover" alt="Фото">
+                                    <div th:unless="${dish.imageDish != null && !dish.imageDish.empty}"
+                                         class="w-full h-full flex items-center justify-center text-lg bg-stone-50">
+                                        🍔
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="font-bold text-stone-900" th:text="${dish.name}">Назва</div>
+                                    <div class="text-xs text-stone-400 max-w-[180px] truncate mt-0.5" th:text="${dish.description}">Опис</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="p-4">
+                            <span class="px-2.5 py-1 bg-stone-100 text-stone-600 rounded-md text-xs font-semibold" th:text="${dish.category.name}">Категорія</span>
+                        </td>
+                        <td class="p-4 font-extrabold text-stone-900" th:text="${dish.price} + ' ₴'">0 ₴</td>
+                        <td class="p-4 text-center">
+                            <span th:if="${dish.isAvailable}" class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-bold">● Доступно</span>
+                            <span th:if="${!dish.isAvailable}" class="px-2.5 py-1 bg-red-50 text-red-700 border border-red-200 rounded-full text-xs font-bold">✕ Стоп-лист</span>
+                        </td>
+                        <td class="p-4 pr-6 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <form th:action="@{/manager/menu/dish/{id}/toggle(id=${dish.id})}" method="POST" class="inline">
+                                    <input type="hidden" name="restaurantId" th:value="${restaurantId}">
+                                    <button type="submit" th:if="${dish.isAvailable}" title="В стоп-лист" class="text-xs font-bold bg-stone-900 hover:bg-amber-600 text-white px-3 py-2 rounded-xl cursor-pointer transition-colors">⛔</button>
+                                    <button type="submit" th:if="${!dish.isAvailable}" title="Активувати знову" class="text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-xl cursor-pointer transition-colors">🔓</button>
+                                </form>
+
+                                <a th:href="@{/manager/dish/{id}/edit(id=${dish.id}, restaurantId=${restaurantId})}"
+                                   title="Редагувати страву"
+                                   class="text-xs font-bold bg-stone-100 hover:bg-stone-200 text-stone-700 px-3 py-2 rounded-xl border border-stone-200 transition-colors">
+                                    ✏️
+                                </a>
+
+                                <form th:action="@{/manager/dish/{id}/delete(id=${dish.id})}" method="POST" class="inline"
+                                      onsubmit="return confirm('Ви впевнені, що хочете видалити цю страву НАЗВЖДИ з бази даних?')">
+                                    <input type="hidden" name="restaurantId" th:value="${restaurantId}">
+                                    <button type="submit" title="Видалити назавжди" class="text-xs font-bold bg-red-50 hover:bg-red-100 text-red-600 px-3 py-2 rounded-xl border border-red-200 cursor-pointer transition-colors">
+                                        🗑️
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="block md:hidden space-y-3">
+            <div th:if="${#lists.isEmpty(dishes)}" class="bg-white border border-stone-200 rounded-2xl p-8 text-center text-stone-400 text-sm">Меню порожнє</div>
+
+            <div th:each="dish : ${dishes}" class="bg-white border border-stone-200 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
+                <div class="flex justify-between items-start gap-4">
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-bold text-stone-900 text-base truncate" th:text="${dish.name}">Назва страви</h3>
+                        <span class="inline-block px-2 py-0.5 bg-stone-100 text-stone-600 rounded text-[10px] font-bold uppercase mt-1" th:text="${dish.category.name}">Категорія</span>
+                        <div class="text-base font-black text-stone-900 mt-2" th:text="${dish.price} + ' ₴'">0 ₴</div>
+                    </div>
+
+                    <div class="w-16 h-16 rounded-xl overflow-hidden border border-stone-200 bg-stone-100 flex-shrink-0">
+                        <img th:if="${dish.imageDish != null && !dish.imageDish.empty}"
+                             th:src="@{'/uploads/' + ${dish.imageDish}}"
+                             class="w-full h-full object-cover" alt="Фото">
+                        <div th:unless="${dish.imageDish != null && !dish.imageDish.empty}"
+                             class="w-full h-full flex items-center justify-center text-xl bg-stone-50">
+                            🍔
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-2 border-t border-stone-100">
+                    <a th:href="@{/manager/dish/{id}/edit(id=${dish.id}, restaurantId=${restaurantId})}"
+                       class="text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 border border-stone-200 px-3 py-2 rounded-xl transition-colors">
+                        ✏️ Редагувати
+                    </a>
+
+                    <div class="flex gap-1.5">
+                        <form th:action="@{/manager/menu/dish/{id}/toggle(id=${dish.id})}" method="POST">
+                            <input type="hidden" name="restaurantId" th:value="${restaurantId}">
+                            <button type="submit" th:if="${dish.isAvailable}" class="text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-xl cursor-pointer">⛔ Стоп</button>
+                            <button type="submit" th:if="${!dish.isAvailable}" class="text-xs font-bold bg-emerald-600 text-white px-3 py-2 rounded-xl cursor-pointer">🔓 Старт</button>
+                        </form>
+
+                        <form th:action="@{/manager/dish/{id}/delete(id=${dish.id})}" method="POST" onsubmit="return confirm('Видалити страву назавжди?')">
+                            <input type="hidden" name="restaurantId" th:value="${restaurantId}">
+                            <button type="submit" class="text-xs font-bold text-red-600 bg-red-50 border border-red-100 px-3 py-2 rounded-xl cursor-pointer">
+                                🗑️
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div th:replace="~{manager/sidebar :: mobile-navbar('menu')}"></div>
+
+<script>
+    function editCategoryName(id, currentName, restaurantId) {
+        const newName = prompt("Введіть нову назву для категорії:", currentName);
+
+        // Якщо користувач ввів нову назву і вона не порожня
+        if (newName !== null && newName.trim() !== "" && newName.trim() !== currentName) {
+            // Динамічно створюємо віртуальну форму для надсилання POST-запиту на бекенд
+            const form = document.createElement("form");
+            form.method = "POST";
+            form.action = `/manager/category/${id}/update`;
+
+            // Додаємо нове ім'я категорії
+            const nameInput = document.createElement("input");
+            nameInput.type = "hidden";
+            nameInput.name = "categoryName";
+            nameInput.value = newName.trim();
+            form.appendChild(nameInput);
+
+            // Додаємо ID ресторану для коректного редіректу
+            const restInput = document.createElement("input");
+            restInput.type = "hidden";
+            restInput.name = "restaurantId";
+            restInput.value = restaurantId;
+            form.appendChild(restInput);
+
+            document.body.appendChild(form);
+            form.submit(); // Відправляємо дані у Spring Boot
+        }
+    }
+</script>
+
+</body>
+</html>

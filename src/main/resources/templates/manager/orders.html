@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Панель Замовлень | Tasty Way</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-stone-100 text-stone-800 font-sans antialiased pb-24 md:pb-0">
+
+<div class="flex min-h-screen">
+
+  <div th:replace="~{manager/sidebar :: desktop-sidebar('orders')}"></div>
+
+  <main class="flex-1 md:ml-64 p-4 md:p-8 w-full">
+
+    <header class="flex items-center justify-between mb-6 pb-4 border-b border-stone-200">
+      <div>
+        <h1 class="text-xl md:text-2xl font-black text-stone-900 tracking-tight">Потік замовлень</h1>
+        <p class="text-xs md:text-sm text-stone-500 mt-0.5">Всі столи у реальному часі</p>
+      </div>
+      <button onclick="location.reload()" class="bg-white hover:bg-stone-50 text-stone-700 font-bold px-3 py-2 border border-stone-200 rounded-xl text-xs transition-all shadow-sm cursor-pointer flex items-center gap-1.5">
+        🔄 <span class="hidden sm:inline">Оновити</span>
+      </button>
+    </header>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+
+      <div th:if="${#lists.isEmpty(orders)}" class="col-span-full bg-white border border-stone-200 rounded-2xl p-12 text-center shadow-sm">
+        <span class="text-5xl block mb-3">📭</span>
+        <h3 class="text-lg font-bold text-stone-700">Наразі замовлень немає</h3>
+      </div>
+
+      <div th:each="order : ${orders}" class="bg-white border border-stone-200 rounded-2xl shadow-sm flex flex-col justify-between overflow-hidden transition-all hover:shadow-md">
+
+        <div class="p-4 border-b border-stone-100 flex items-center justify-between bg-stone-50/50">
+          <div>
+            <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Замовлення</span>
+            <span class="text-sm font-black text-stone-900" th:text="'#' + ${order.id}">#12</span>
+          </div>
+          <div class="text-right">
+            <span class="text-xs font-bold text-amber-800 px-3 py-1.5 bg-amber-100 rounded-full block" th:text="'Стіл № ' + ${order.tableNumber}">Стіл № 0</span>
+          </div>
+        </div>
+
+        <div class="p-4 flex-1 space-y-2.5">
+          <div class="text-[10px] text-stone-400 font-bold uppercase tracking-wider mb-1">Позиції:</div>
+          <div th:each="item : ${order.items}" class="flex items-center justify-between text-xs md:text-sm">
+            <span class="text-stone-700 font-medium" th:text="${item.dish.name}">Назва</span>
+            <span class="text-stone-500 font-bold" th:text="'x' + ${item.quantity}">x2</span>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-stone-150 flex flex-col gap-1">
+
+            <th:block th:with="originalTotal=${#aggregates.sum(order.items.![dish.price * quantity])}">
+
+              <div th:if="${originalTotal > order.totalPrice}" class="flex flex-col gap-0.5 text-xs text-stone-500 mb-1">
+                <div class="flex justify-between">
+                  <span>Сума за меню:</span>
+                  <span class="line-through" th:text="${originalTotal} + ' ₴'">0.00 ₴</span>
+                </div>
+                <div class="flex justify-between text-emerald-600 font-semibold">
+                  <span>Знижка за акціями:</span>
+                  <span th:text="'-' + ${originalTotal - order.totalPrice} + ' ₴'">-0.00 ₴</span>
+                </div>
+              </div>
+
+            </th:block>
+
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-stone-400 uppercase tracking-wider">Разом до сплати:</span>
+              <span class="text-lg font-black text-stone-900" th:text="${order.totalPrice} + ' ₴'">0.00 ₴</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-4 border-t border-stone-100 bg-stone-50/30 flex items-center justify-between gap-2">
+          <div>
+            <span class="text-[9px] font-bold text-stone-400 uppercase tracking-wider block">Разом</span>
+            <span class="text-base font-black text-amber-700" th:text="${order.totalPrice} + ' ₴'">0 ₴</span>
+          </div>
+
+          <form th:action="@{/manager/orders/{id}/status(id=${order.id})}" method="POST" class="flex">
+            <input type="hidden" name="restaurantId" th:value="${restaurantId}">
+
+            <button th:if="${order.status.name() == 'NEW'}" name="status" value="COOKING" type="submit"
+                    class="bg-stone-900 hover:bg-amber-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all cursor-pointer shadow-sm uppercase tracking-wide">
+              Прийняти 🍳
+            </button>
+
+            <button th:if="${order.status.name() == 'COOKING'}" name="status" value="CLOSED" type="submit"
+                    class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all cursor-pointer shadow-sm uppercase tracking-wide">
+              Закрити ✓
+            </button>
+
+            <span th:if="${order.status.name() == 'CLOSED'}" class="text-xs font-bold text-stone-400 border border-stone-200 px-3 py-2 bg-stone-100 rounded-xl">
+               Оплачено 🔒
+            </span>
+          </form>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div th:replace="~{manager/sidebar :: mobile-navbar('orders')}"></div>
+
+</body>
+</html>
